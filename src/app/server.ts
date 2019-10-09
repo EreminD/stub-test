@@ -34,10 +34,13 @@ routeHolder.onNewStubRule.on('newStub',
             break;
         }
         case Method.POST: {
-
             app.post(path, (req: Request, res) => {
                 requestLogger.log(req);
                 const respSpec:ResponseSpecification = responseProcessor.applyMutations(req);
+                res.statusCode = respSpec.statusCode;
+                res.statusMessage = respSpec.statusMessage;
+                respSpec.headers.forEach((value,key) => res.setHeader(key, value));
+                respSpec.cookies.forEach((k,v) => res.cookie(k, v));
                 res.send(respSpec.body);
             });
             break;
@@ -50,9 +53,7 @@ app.get('/',  (request, response) => {
 });
 
 app.post('/set', (request: Request, response) => {
-    requestLogger.log(request);
     const reqSpec = requestProcessor.registerStub(request);
-
     response.statusMessage = 'Stub created';
     response.statusCode = 201;
     response.send(reqSpec);

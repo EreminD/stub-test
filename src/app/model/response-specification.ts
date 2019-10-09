@@ -1,7 +1,7 @@
 export interface ResponseSpecification {
     statusCode: number,
     statusMessage: string,
-    headers: Array<object>,
+    headers: Map<string, string>,
     body? : any,
-    cookies: Array<object>
+    cookies: Map<string, any>
 }

@@ -4,7 +4,6 @@ import {ResponseProcessor} from "./response-processor";
 
 
 export class StubsHolder {
-    private readonly routesSet: Map<RequestSpecification, ResponseProcessor> = new Map();
     private readonly _onNewStubRule: RouterEmitter;
 
     constructor(){
@@ -17,7 +16,6 @@ export class StubsHolder {
 
     addRoute(requestSpecification: RequestSpecification): void {
         const responseProcessor = new ResponseProcessor(requestSpecification.responseSpecification, requestSpecification.mutations);
-        this.routesSet.set(requestSpecification, responseProcessor);
         this._onNewStubRule.emit('newStub', requestSpecification, responseProcessor);
     }
 }

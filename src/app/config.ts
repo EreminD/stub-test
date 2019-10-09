@@ -12,9 +12,9 @@ export class Config {
         this.defaults.stubPath = '/stub';
         this.defaults.responseSpecification = {
                     statusCode: 200,
-                    statusMessage: 'Ok',
-                    headers: [],
-                    cookies: []
+                    statusMessage: 'Oki-Doki',
+                    headers: new Map(),
+                    cookies: new Map()
                 }
 
 

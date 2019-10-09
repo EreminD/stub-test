@@ -37,11 +37,22 @@ export class RequestProcessor {
     private createResponseSpecification(request: Request): ResponseSpecification {
         const responseSpecification = Config.defaults.responseSpecification as ResponseSpecification;
 
-        responseSpecification.statusCode = request.body['response']['statusCode'];
-        responseSpecification.statusMessage = request.body['response']['statusMessage'];
-        responseSpecification.headers = request.body['response']['headers'];
-        responseSpecification.cookies = request.body['response']['cookies'];
-        responseSpecification.body = request.body['response']['body'];
+        const response = request.body['response'];
+        responseSpecification.statusCode = response['statusCode'];
+        responseSpecification.statusMessage = response['statusMessage'];
+        responseSpecification.body = response['body'];
+
+        this.arrayToMap(response['cookies'], responseSpecification.cookies);
+        this.arrayToMap(response['headers'], responseSpecification.headers);
+
         return responseSpecification;
+    }
+
+    private arrayToMap(data: any, map: Map<string, any>): void{
+        (data as Array<any>).forEach(item => {
+            const key = Object.keys(item)[0];
+            const value = item[key];
+            map.set(key, value);
+        });
     }
 }

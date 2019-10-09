@@ -18,24 +18,29 @@ export class ResponseProcessor {
     }
 
     private applyMutation(request: Request, mutation: Mutation): void{
-const path = mutation.path.replace('$.', '');
-        console.log(mutation.source)
-        console.log(request[mutation.source])
-        const valueToInsert = this.getValueFromBody(request.body, mutation.value);
+        const value = this.getValue(request.body, mutation.value);
+        this.setValue(this._responseSpecification.body, mutation.path, value)
 
-        console.log(`Got value=${valueToInsert} by path ${mutation.value}`);
-        this._responseSpecification.body = this._responseSpecification.body || {};
-        this._responseSpecification.body[path] = valueToInsert;
         console.log(this._responseSpecification.body)
     }
 
-    private getValueFromBody(body: any, path: string): any {
+    private getValue(target: any, path: string): any {
+        let value = target;
         const pathSteps = path.replace('$.', '').split('.');
-        let value = body;
-        pathSteps.forEach(step => {
-            value = value[step]
-            console.log(`Step ${step} --> ${value}`)
-        });
+        pathSteps.forEach(step => value = value[step]);
         return value;
+    }
+
+    private setValue(target:any, path: string, value: any): void{
+        const pathSteps = path.replace('$.', '').split('.');
+        const deep = pathSteps.length-1;
+        let currentNode = target;
+        for (let i =0; i<deep; i++){
+            const step = pathSteps[i];
+            currentNode[step] = currentNode[step] || {};
+            currentNode = currentNode[step];
+        }
+        const lastChild = pathSteps[pathSteps.length-1];
+        currentNode[lastChild] = value;
     }
 }
