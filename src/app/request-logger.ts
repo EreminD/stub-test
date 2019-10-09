@@ -8,5 +8,7 @@ export class RequestLogger {
         console.log(request.url);
         console.log(request.method);
         console.log(request.headers);
+        console.log(request.cookies);
+        console.log(request.body);
     }
 }
