@@ -1,46 +1,48 @@
 import {ResponseSpecification} from "../model/response-specification";
 import {Mutation} from "../mutation/mutation";
 import {Request} from "express";
+import {ValueGetter} from "../mutation/value-getters/value-getter";
+import {ValueGetterBody} from "../mutation/value-getters/value-getter-body";
+import {ValueSetter} from "../mutation/value-setters/value-setter";
+import {ValueSetterBody} from "../mutation/value-setters/value-setter-body";
+import {ValueGetterQuery} from "../mutation/value-getters/value-getter-query";
 
 export class ResponseProcessor {
-    private readonly _responseSpecification: ResponseSpecification;
-    private readonly _mutations: Array<Mutation>;
+    private readonly _valueGetters: Map<string, ValueGetter>;
+    private readonly _valueSetters: Map<string, ValueSetter>;
 
-
-    constructor(response: ResponseSpecification, mutations: Array<Mutation>) {
-        this._responseSpecification = response;
-        this._mutations = mutations;
+    constructor() {
+        this._valueGetters = new Map<string, ValueGetter>();
+        this._valueSetters = new Map<string, ValueSetter>();
+        this._valueGetters.set('body', new ValueGetterBody());
+        this._valueGetters.set('query', new ValueGetterQuery());
+        this._valueSetters.set('body', new ValueSetterBody());
     }
 
-    applyMutations(request: Request): ResponseSpecification{
-        this._mutations.forEach(mutation => this.applyMutation(request, mutation));
-        return this._responseSpecification;
+
+    applyMutations(request: Request, responseSpecification: ResponseSpecification, mutations: Array<Mutation>): ResponseSpecification{
+        mutations.forEach(mutation => this.applyMutation(request, responseSpecification, mutation));
+        return responseSpecification;
     }
 
-    private applyMutation(request: Request, mutation: Mutation): void{
-        const value = this.getValue(request.body, mutation.value);
-        this.setValue(this._responseSpecification.body, mutation.path, value)
+    private applyMutation(request: Request, responseSpecification: ResponseSpecification, mutation: Mutation): void {
+        if (mutation.value) {
+            console.log('Start body mutation');
+            const getterName = mutation.value.split('.')[0];
+            const getter = this._valueGetters.get(getterName);
 
-        console.log(this._responseSpecification.body)
-    }
+            if (!getter) throw new Error(`Unknown value source ${getterName}`);
+            const value = getter.getValue(request, mutation.value.split('.').slice(1));
 
-    private getValue(target: any, path: string): any {
-        let value = target;
-        const pathSteps = path.replace('$.', '').split('.');
-        pathSteps.forEach(step => value = value[step]);
-        return value;
-    }
+            const setterName = mutation.target.split('.')[0];
+            const setter = this._valueSetters.get(setterName);
+            if (!setter) throw new Error(`Unknown value source ${setterName}`);
+            setter.setValue(value, responseSpecification, mutation.target.split('.').slice(1));
 
-    private setValue(target:any, path: string, value: any): void{
-        const pathSteps = path.replace('$.', '').split('.');
-        const deep = pathSteps.length-1;
-        let currentNode = target;
-        for (let i =0; i<deep; i++){
-            const step = pathSteps[i];
-            currentNode[step] = currentNode[step] || {};
-            currentNode = currentNode[step];
+            console.log(responseSpecification.body);
+        } else {
+            console.log(`${JSON.stringify(mutation)}`)
+            mutation.fn;
         }
-        const lastChild = pathSteps[pathSteps.length-1];
-        currentNode[lastChild] = value;
     }
 }

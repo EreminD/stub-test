@@ -1,7 +1,7 @@
 import express = require('express');
 import bodyParser = require('body-parser');
 import cookieParser = require('cookie-parser');
-import {Request} from "express";
+import {Request, Response} from "express";
 import {Config} from "./config";
 import {RequestLogger} from "./request-logger";
 import {StubsHolder} from "./processor/stubs-holder";
@@ -20,33 +20,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const requestLogger = new RequestLogger();
-const routeHolder: StubsHolder = new StubsHolder();
-const requestProcessor: RequestProcessor = new RequestProcessor(routeHolder);
-
-routeHolder.onNewStubRule.on('newStub',
-    (requestSpecification:RequestSpecification, responseProcessor: ResponseProcessor) => {
-    const method: Method = requestSpecification.method;
-    const path: string = requestSpecification.path;
-
-    switch (method) {
-        case Method.GET: {
-            app.get(path, (req: Request, res) => res.send(responseProcessor));
-            break;
-        }
-        case Method.POST: {
-            app.post(path, (req: Request, res) => {
-                requestLogger.log(req);
-                const respSpec:ResponseSpecification = responseProcessor.applyMutations(req);
-                res.statusCode = respSpec.statusCode;
-                res.statusMessage = respSpec.statusMessage;
-                respSpec.headers.forEach((value,key) => res.setHeader(key, value));
-                respSpec.cookies.forEach((k,v) => res.cookie(k, v));
-                res.send(respSpec.body);
-            });
-            break;
-        }
-    }
-});
+const stubHolder: StubsHolder = new StubsHolder(app);
+const requestProcessor: RequestProcessor = new RequestProcessor(stubHolder);
 
 app.get('/',  (request, response) => {
     response.send('all stubs are available on /stub')
@@ -64,3 +39,28 @@ app.listen(port, () => {
     console.log(`Send POST on http://localhost:${port}/set to set a new stub`)
 });
 
+stubHolder.newStub.on('newStub',(specification:RequestSpecification, processor: ResponseProcessor) => {
+        const method: Method = specification.method;
+        const path: string = specification.path;
+
+        switch (method) {
+            case Method.GET: {
+                app.get(path, (req: Request, res) => res.send(processor));
+                break;
+            }
+            case Method.POST: {
+                // app.routes.stack.forEach((s:any) => console.log(JSON.stringify(s)));
+                app.post(path, (req: Request, res: Response) => {
+                    requestLogger.log(req);
+                    const respSpec:ResponseSpecification = processor.applyMutations(req);
+
+                    res.statusCode = respSpec.statusCode;
+                    res.statusMessage = respSpec.statusMessage;
+                    respSpec.headers.forEach((value,key) => res.setHeader(key, value));
+                    respSpec.cookies.forEach((value, key) => res.cookie(key, value));
+                    res.send(respSpec.body);
+                });
+                break;
+            }
+        }
+    });

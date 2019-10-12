@@ -1,9 +1,10 @@
+import {ResponseSpecification} from "../model/response-specification";
+import {Request} from "express";
+
 export interface Mutation {
-    source: 'body'|'headers'|'cookies';
-    value: any;
+    value: string;
+    fn: string;
+    target: string;
 
-    target: 'body'|'headers'|'cookies';
-    path: string;
-
-    apply(): void;
+    apply(request: Request, responseSpecification: ResponseSpecification): void;
 }

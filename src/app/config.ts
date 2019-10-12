@@ -26,3 +26,10 @@ export class Config {
         return param ? +(param.replace('port=', '')) : this.defaults.port;
     }
 }
+
+// { "value": "header.test-header", "target": "body.testHeader"},
+// { "value": "header.test-header", "target": "cookie.cookieResp"},
+// { "value": "cookie.cookieA", "target": "body.cookie"},
+// { "value": "query.cookieA", "target": "header.cookie-resp"},
+// { "value": "query.queryPara1", "target": "body.queryValue"},
+// { "value": "query.queryPara1", "fn": "increment", "target": "body.queryValue"},

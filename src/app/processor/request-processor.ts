@@ -4,6 +4,7 @@ import {Method} from "../model/method-enum";
 import {Request} from "express";
 import {Config} from "../config";
 import {ResponseSpecification} from "../model/response-specification";
+import {CollectionUtil} from "../utils/collection-util";
 
 export class RequestProcessor {
     private readonly _routeHolder: StubsHolder;
@@ -23,7 +24,7 @@ export class RequestProcessor {
 
         requestSpecification.method = this.defineHttpMethod(request);
         requestSpecification.path = Config.defaults.stubPath + request.body['path'];
-        requestSpecification.responseSpecification = this.createResponseSpecification(request)
+        requestSpecification.responseSpecification = this.createResponseSpecification(request);
         requestSpecification.mutations = request.body['mutations'] || [];
 
         return requestSpecification;
@@ -36,23 +37,14 @@ export class RequestProcessor {
 
     private createResponseSpecification(request: Request): ResponseSpecification {
         const responseSpecification = Config.defaults.responseSpecification as ResponseSpecification;
-
         const response = request.body['response'];
+
         responseSpecification.statusCode = response['statusCode'];
         responseSpecification.statusMessage = response['statusMessage'];
         responseSpecification.body = response['body'];
-
-        this.arrayToMap(response['cookies'], responseSpecification.cookies);
-        this.arrayToMap(response['headers'], responseSpecification.headers);
+        CollectionUtil.arrayToMap(response['cookies'], responseSpecification.cookies);
+        CollectionUtil.arrayToMap(response['headers'], responseSpecification.headers);
 
         return responseSpecification;
-    }
-
-    private arrayToMap(data: any, map: Map<string, any>): void{
-        (data as Array<any>).forEach(item => {
-            const key = Object.keys(item)[0];
-            const value = item[key];
-            map.set(key, value);
-        });
     }
 }
