@@ -2,10 +2,21 @@
 	"path": "/api/user",
 	"method": "POST",
 	"response": {
-		"statusCode": 201,
-		"statusMessage": "User created",
-		"headers": [{"user": "new"}, {"user-role": "admin"}],
-		"body" : {"userLogin":"Tom", "id": "14"},
-		"cookies": [{"sessionId": "Tom's session"}, {"authId": "Tom's auth"}]
-	}
+		"statusCode": 202,
+		"statusMessage": "Stub response",
+		"headers": [{"header1Key": "header1Value"}, {"header2Key": "header2Value"}],
+		"body" : {"userName":"Tom"},
+		"cookies": [{"cookieA": "cookieAValue"}, {"cookieB": "cookieBValue"}]
+	},
+	"mutations": [
+		{ "source": "body", "value": "$.req.a1.b1.c1", "target": "body", "path": "$.resp.a.b.c.d"},
+		{ "source": "body", "value": "$.req.a1.b1.c2", "target": "body", "path": "$.resp.a.b.d.c"},
+		{ "source": "body", "value": "$.req.a1.b1.c3", "target": "body", "path": "$.data.a.b.c.e"},
+		{ "source": "header", "value": "test-header", "target": "body", "path": "$.testHeader"},
+		{ "source": "header", "value": "test-header", "target": "cookie", "path": "cookieResp"},
+		{ "source": "cookie", "value": "cookieA", "target": "body", "path": "$.cookie"},
+		{ "source": "cookie", "value": "cookieA", "target": "header", "path": "cookie-resp"},
+		{ "source": "query", "value":"queryPara1", "target": "body", "path": "$.queryValue"},
+		{ "source": "query", "value":"queryPara1", "target": "body", "path": "$.queryValue", "fn": "increment"}
+	]
 }
