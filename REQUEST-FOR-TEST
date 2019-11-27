@@ -1,0 +1,11 @@
+{
+	"path": "/api/user",
+	"method": "POST",
+	"response": {
+		"statusCode": 201,
+		"statusMessage": "User created",
+		"headers": [{"user": "new"}, {"user-role": "admin"}],
+		"body" : {"userLogin":"Tom", "id": "14"},
+		"cookies": [{"sessionId": "Tom's session"}, {"authId": "Tom's auth"}]
+	}
+}
